@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - Fake News Classifier</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#35424a',
+                        secondary: '#e8491d',
+                    }
+                }
+            }
+        };
+    </script>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-100 font-sans">
+
+    <!-- Navbar -->
+    <header class="bg-primary text-white py-6 border-b-4 border-secondary">
+        <div class="container mx-auto px-4 flex justify-between items-center">
+            <h1 class="text-3xl font-bold">
+                <i class="fas fa-newspaper"></i> 
+                <span class="text-secondary">Fake News</span> Classifier
+            </h1>
+            <nav class="flex space-x-6">
+                <a href="{% url 'classify_news' %}" class="text-lg text-white hover:text-secondary">Home</a>
+                <a href="{% url 'news_home' %}" class="text-lg text-white hover:text-secondary">Live News</a>
+                <a href="{% url 'pdf_chat' %}" class="text-lg text-white hover:text-secondary">PDF Chat</a>
+                <a href="{% url 'feedback' %}" class="text-lg text-white hover:text-secondary">Feedback</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow container mx-auto px-4 py-10">
+        <div class="max-w-2xl mx-auto bg-white shadow-lg rounded-xl p-6">
+
+            <!-- Profile Header -->
+            <div class="flex items-center space-x-4 mb-6">
+                <div class="w-16 h-16 rounded-full overflow-hidden bg-gray-200">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="Profile Picture" class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center bg-gray-300 text-gray-600 text-xl">
+                            {{ user.username|make_list|first|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <h2 class="text-xl font-bold text-gray-900">Edit Profile</h2>
+            </div>
+
+            <!-- Form -->
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Profile Picture -->
+                <div>
+                    <label class="block text-lg font-bold text-gray-800">Profile Picture</label>
+                    {{ form.profile_picture }}
+                </div>
+
+                <!-- Name Fields -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-lg font-bold text-gray-800">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div>
+                        <label class="block text-lg font-bold text-gray-800">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                </div>
+
+                <!-- Email & Username -->
+                <div>
+                    <label class="block text-lg font-bold text-gray-800">Email</label>
+                    {{ form.email }}
+                </div>
+                <div>
+                    <label class="block text-lg font-bold text-gray-800">Username</label>
+                    {{ form.username }}
+                </div>
+
+                <!-- Location -->
+                <div>
+                    <label class="block text-lg font-bold text-gray-800">City</label>
+                    {{ form.location }}
+                </div>
+
+                <!-- Birth Date -->
+                <div>
+                    <label class="block text-lg font-bold text-gray-800">Birth Date</label>
+                    {{ form.birth_date }}
+                </div>
+
+                <!-- Bio -->
+                <div>
+                    <label class="block text-lg font-bold text-gray-800">Bio</label>
+                    {{ form.bio }}
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'profile' %}" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100">
+                        Cancel
+                    </a>
+                    <button type="submit" class="px-6 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/80">
+                        Save
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-primary text-white text-center py-4">
+        <p>&copy; Final Year Project | Ujjal Koirala</p>
+    </footer>
+
+    <!-- Success Message Popup -->
+    <div id="message-popup" class="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 transition-opacity duration-300">
+        {% if messages %}
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // Add Tailwind classes to form inputs
+        document.addEventListener('DOMContentLoaded', function() {
+            const inputs = document.querySelectorAll('input, textarea, select');
+            inputs.forEach(input => {
+                input.classList.add(
+                    'w-full', 'px-4', 'py-2', 'text-gray-900',
+                    'border', 'border-gray-300', 'rounded-lg', 'shadow-sm',
+                    'focus:ring-secondary', 'focus:border-secondary', 'focus:outline-none'
+                );
+
+                if (input.tagName.toLowerCase() === 'textarea') {
+                    input.classList.add('h-32', 'resize-none');
+                }
+            });
+
+            // Show success message
+            const messagePopup = document.getElementById('message-popup');
+            if (messagePopup.textContent.trim() !== '') {
+                messagePopup.classList.remove('opacity-0');
+                setTimeout(() => {
+                    messagePopup.classList.add('opacity-0');
+                }, 4000);
+            }
+        });
+    </script>
+
+</body>
+</html>

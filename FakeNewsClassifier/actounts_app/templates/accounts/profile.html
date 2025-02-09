@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.username }}'s Profile - Fake News Classifier</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#35424a',
+                        secondary: '#e8491d',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-100 font-sans">
+    <header class="bg-primary text-white py-6 border-b-4 border-secondary">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center">
+                <div id="branding" class="mb-4 sm:mb-0">
+                    <h1 class="text-3xl font-bold">
+                        <i class="fas fa-newspaper"></i> 
+                        <span class="text-secondary">Fake News</span> Classifier
+                    </h1>
+                </div>
+                <nav class="flex items-center space-x-6">
+                    <a href="{% url 'classify_news' %}" 
+                       class="text-white hover:text-secondary transition duration-300 text-lg md:text-xl px-2">
+                        Home
+                    </a>
+                    <a href="{% url 'news_home' %}" 
+                       class="text-white hover:text-secondary transition duration-300 text-lg md:text-xl px-2">
+                        Live News
+                    </a>
+                    <a href="{% url 'pdf_chat' %}" 
+                       class="text-white hover:text-secondary transition duration-300 text-lg md:text-xl px-2">
+                        PDF Chat
+                    </a>
+                    <a href="{% url 'feedback' %}" 
+                    class="text-white hover:text-secondary transition duration-300 text-lg md:text-xl px-2">
+                     Feedback
+                    </a>
+                    <!-- Profile Dropdown -->
+                    {% if user.is_authenticated %}
+                        <div class="relative">
+                            <button 
+                                onclick="toggleDropdown()"
+                                class="flex items-center space-x-2 focus:outline-none"
+                                aria-expanded="false"
+                            >
+                                <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-300">
+                                    {% if user.profile_picture %}
+                                        <img 
+                                            src="{{ user.profile_picture.url }}" 
+                                            alt="" 
+                                            class="w-full h-full object-cover"
+                                        >
+                                    {% else %}
+                                        <div class="w-full h-full flex items-center justify-center bg-gray-600 text-white text-xl">
+                                            {{ user.username|make_list|first|upper }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </button>
+                            <div 
+                                id="userDropdown" 
+                                class="hidden absolute right-0 top-12 w-48 bg-white rounded-md shadow-lg py-1 text-gray-700 z-50"
+                            >
+                                <a 
+                                    href="{% url 'profile' %}" 
+                                    class="block px-4 py-2 text-sm hover:bg-gray-100"
+                                >
+                                    Your Profile
+                                </a>
+                                <a 
+                                    href="{% url 'logout' %}" 
+                                    class="block px-4 py-2 text-sm hover:bg-gray-100"
+                                >
+                                    Logout
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-10">
+        <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="md:flex">
+                <div class="md:flex-shrink-0 relative">
+                    {% if user.profile_picture %}
+                        <img class="h-64 w-full object-cover md:w-64" src="{{ user.profile_picture.url }}" alt="{{ user.username }}">
+                    {% else %}
+                        <div class="h-64 w-full md:w-64 bg-gray-300 flex items-center justify-center">
+                            <span class="text-gray-500 text-6xl">{{ user.username|make_list|first|upper }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="p-8 w-full relative">
+                    <div class="absolute top-0 right-0 mt-4 mr-4">
+                        <a href="{% url 'edit_profile' %}" class="bg-secondary text-white px-4 py-2 rounded-full hover:bg-opacity-80 transition duration-300">
+                            Edit Profile
+                        </a>
+                    </div>
+                    <div class="uppercase tracking-wide text-sm text-secondary font-semibold mb-1">Profile</div>
+                    <h2 class="text-3xl font-bold text-gray-900">{{ user.username }}</h2>
+                    
+                    <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Personal Information -->
+                        <div class="space-y-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700">Personal Information</h3>
+                                <div class="mt-2 space-y-2">
+                                    <p class="text-gray-600">
+                                        <span class="font-medium">First Name:</span> 
+                                        {{ user.first_name|default:"Not specified" }}
+                                    </p>
+                                    <p class="text-gray-600">
+                                        <span class="font-medium">Last Name:</span> 
+                                        {{ user.last_name|default:"Not specified" }}
+                                    </p>
+                                    <p class="text-gray-600">
+                                        <span class="font-medium">Email:</span> 
+                                        {{ user.email }}
+                                    </p>
+                                    <p class="text-gray-600">
+                                        <span class="font-medium">Birth Date:</span> 
+                                        {{ user.birth_date|date:"F d, Y"|default:"Not specified" }}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700">Location</h3>
+                                <div class="mt-2 space-y-2">
+                                    <p class="text-gray-600">
+                                        <span class="font-medium">City:</span> 
+                                        {{ user.location|default:"Not specified" }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Information -->
+                        <div class="space-y-4">
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700">Bio</h3>
+                                <p class="mt-2 text-gray-600">{{ user.bio|default:"No bio provided"|linebreaks }}</p>
+                            </div>
+
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-700">Account Information</h3>
+                                <div class="mt-2 space-y-2">
+                                    <p class="text-gray-600">
+                                        <span class="font-medium">Username:</span> 
+                                        {{ user.username }}
+                                    </p>
+                                    <p class="text-gray-600">
+                                        <span class="font-medium">Member Since:</span> 
+                                        {{ user.date_joined|date:"F d, Y" }}
+                                    </p>
+                                    <div class="mt-4">
+                                        <label class="block text-gray-700"><strong>Unique Code:</strong></label>
+                                        <div class="relative">
+                                            <input type="password" id="unique_code" value="{{ user.unique_code }}" class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-secondary focus:border-secondary" readonly>
+                                            <button type="button" onclick="toggleUniqueCode()" class="absolute inset-y-0 right-0 px-3 py-2 text-gray-500 hover:text-gray-700">
+                                                <i id="eye_icon" class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                        <p class="text-sm text-red-600 mt-2">Do not share this code with anyone. It is needed in Forget Password section.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-primary text-white text-center py-4 mt-8">
+        <p class="text-sm">&copy; Final Year Project | Ujjal Koirala</p>
+    </footer>
+
+    <div id="message-popup" class="fixed top-0 left-1/2 transform -translate-x-1/2 mt-4 px-6 py-3 rounded-full bg-green-500 text-white text-sm font-bold shadow-lg transition-opacity duration-300 opacity-0 invisible">
+        {% if messages %}
+            {% for message in messages %}
+                {{ message }}
+            {% endfor %}
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const button = event.target.closest('button');
+            
+            if (!button && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Add this new script for the pop-up message
+        document.addEventListener('DOMContentLoaded', function() {
+            const messagePopup = document.getElementById('message-popup');
+            if (messagePopup.textContent.trim() !== '') {
+                messagePopup.classList.remove('opacity-0', 'invisible');
+                setTimeout(() => {
+                    messagePopup.classList.add('opacity-0');
+                    setTimeout(() => {
+                        messagePopup.classList.add('invisible');
+                    }, 300);
+                }, 4000);
+            }
+        });
+
+        function toggleUniqueCode() {
+            const input = document.getElementById('unique_code');
+            const eyeIcon = document.getElementById('eye_icon');
+            if (input.type === 'password') {
+                input.type = 'text';
+                eyeIcon.classList.remove('fa-eye');
+                eyeIcon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                eyeIcon.classList.remove('fa-eye-slash');
+                eyeIcon.classList.add('fa-eye');
+            }
+        }
+    </script>
+</body>
+</html> 
