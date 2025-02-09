@@ -1,7 +1,5 @@
 # Fake News Classifier
 
-# Fake News Classifier
-
 ## Project Overview
 
 The Fake News Classifier is a comprehensive web application designed to combat the spread of misinformation by providing users with tools to verify news articles and stay informed about current events. It combines machine learning-based classification, news aggregation, and advanced search capabilities to create a powerful platform for information verification and consumption.
