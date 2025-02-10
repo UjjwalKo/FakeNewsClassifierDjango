@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - Fake News Classifier</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#35424a',
+                        secondary: '#e8491d',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-100 font-sans">
+    <header class="bg-primary text-white py-6 border-b-4 border-secondary">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col sm:flex-row justify-between items-center">
+                <div id="branding" class="mb-4 sm:mb-0">
+                    <h1 class="text-3xl font-bold">
+                        <i class="fas fa-newspaper"></i> 
+                        <span class="text-secondary">Fake News</span> Classifier
+                    </h1>
+                </div>
+                <nav class="flex items-center space-x-6">
+                    <a href="{% url 'classify_news' %}" 
+                       class="text-white hover:text-secondary transition duration-300 text-lg md:text-xl px-2">
+                        Home
+                    </a>
+                    <a href="{% url 'news_home' %}" 
+                       class="text-white hover:text-secondary transition duration-300 text-lg md:text-xl px-2">
+                        Live News
+                    </a>
+                    <a href="{% url 'pdf_chat' %}" 
+                       class="text-white hover:text-secondary transition duration-300 text-lg md:text-xl px-2">
+                        PDF Chat
+                    </a>
+                    <a href="{% url 'feedback' %}" 
+                       class="text-white hover:text-secondary transition duration-300 text-lg md:text-xl px-2">
+                        Feedback
+                    </a>
+                    <div class="relative">
+                        <button 
+                            onclick="toggleDropdown()"
+                            class="flex items-center space-x-2 focus:outline-none"
+                            aria-expanded="false"
+                        >
+                            <div class="w-10 h-10 rounded-full overflow-hidden bg-gray-300">
+                                {% if user.profile_picture %}
+                                    <img 
+                                        src="{{ user.profile_picture.url }}" 
+                                        alt="" 
+                                        class="w-full h-full object-cover"
+                                    >
+                                {% else %}
+                                    <div class="w-full h-full flex items-center justify-center bg-gray-600 text-white text-xl">
+                                        {{ user.username|make_list|first|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </button>
+                        <div 
+                            id="userDropdown" 
+                            class="hidden absolute right-0 top-12 w-48 bg-white rounded-md shadow-lg py-1 text-gray-700 z-50"
+                        >
+                            <a 
+                                href="{% url 'profile' %}" 
+                                class="block px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                                Your Profile
+                            </a>
+                            <a 
+                                href="{% url 'settings' %}" 
+                                class="block px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                                Settings
+                            </a>
+                            <a 
+                                href="{% url 'logout' %}" 
+                                class="block px-4 py-2 text-sm hover:bg-gray-100"
+                            >
+                                Logout
+                            </a>
+                        </div>
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto px-4 py-10">
+        <div class="max-w-2xl mx-auto">
+            <div class="bg-white shadow-md rounded-lg overflow-hidden">
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold mb-6">Change Password</h2>
+                    
+                    <form method="post" id="passwordChangeForm" class="space-y-6">
+                        {% csrf_token %}
+                        {% if messages %}
+                            {% for message in messages %}
+                                <div class="{% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %} p-4 rounded-md mb-4">
+                                    {{ message }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        
+                        <div>
+                            <label for="old_password" class="block text-sm font-medium text-gray-700 mb-1">
+                                Old Password
+                            </label>
+                            <input 
+                                type="password" 
+                                id="old_password" 
+                                name="old_password" 
+                                required
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-secondary focus:border-secondary"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="new_password" class="block text-sm font-medium text-gray-700 mb-1">
+                                New Password
+                            </label>
+                            <input 
+                                type="password" 
+                                id="new_password" 
+                                name="new_password" 
+                                required
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-secondary focus:border-secondary"
+                            >
+                        </div>
+
+                        <div>
+                            <label for="confirm_password" class="block text-sm font-medium text-gray-700 mb-1">
+                                Confirm Password
+                            </label>
+                            <input 
+                                type="password" 
+                                id="confirm_password" 
+                                name="confirm_password" 
+                                required
+                                class="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-secondary focus:border-secondary"
+                            >
+                        </div>
+
+                        <div class="flex justify-end space-x-4 pt-4">
+                            <button 
+                                type="submit" 
+                                class="px-4 py-2 bg-secondary border border-transparent rounded-md text-sm font-medium text-white hover:bg-secondary/80 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary"
+                            >
+                                Change Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="bg-primary text-white text-center py-4 mt-8">
+        <p class="text-sm">&copy; Final Year Project | Ujjal Koirala</p>
+    </footer>
+
+    <script>
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const button = event.target.closest('button');
+            
+            if (!button && !dropdown.classList.contains('hidden')) {
+                dropdown.classList.add('hidden');
+            }
+        });
+
+        // Password change form validation and submission
+        document.getElementById('passwordChangeForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const oldPassword = document.getElementById('old_password').value;
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            if (!oldPassword || !newPassword || !confirmPassword) {
+                showErrorMessage('All password fields are required');
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                showErrorMessage('New password and confirmation password do not match');
+                return;
+            }
+
+            if (newPassword.length < 8) {
+                showErrorMessage('New password must be at least 8 characters long');
+                return;
+            }
+
+            // AJAX submission
+            const formData = new FormData(this);
+            fetch('{% url "settings" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showSuccessMessage(data.message);
+                    this.reset();
+                } else {
+                    showErrorMessage(data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showErrorMessage('An error occurred. Please try again.');
+            });
+        });
+
+        function showErrorMessage(message) {
+            const messageContainer = document.createElement('div');
+            messageContainer.className = 'bg-red-100 text-red-700 p-4 rounded-md mb-4';
+            messageContainer.textContent = message;
+            insertMessage(messageContainer);
+        }
+
+        function showSuccessMessage(message) {
+            const messageContainer = document.createElement('div');
+            messageContainer.className = 'bg-green-100 text-green-700 p-4 rounded-md mb-4';
+            messageContainer.textContent = message;
+            insertMessage(messageContainer);
+        }
+
+        function insertMessage(messageElement) {
+            const form = document.getElementById('passwordChangeForm');
+            const existingMessage = form.querySelector('.message-container');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            messageElement.classList.add('message-container');
+            form.insertBefore(messageElement, form.firstChild);
+        }
+    </script>
+</body>
+</html>

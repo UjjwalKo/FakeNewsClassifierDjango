@@ -10,4 +10,5 @@ urlpatterns = [
     path('feedback/', views.feedback_view, name='feedback'),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('reset-password/<str:email>/', views.reset_password, name='reset_password'),
+    path('settings/', views.settings_view, name='settings'),
 ]

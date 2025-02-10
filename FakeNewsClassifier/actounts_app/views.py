@@ -1,9 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import login, authenticate, logout, get_user_model
+from django.contrib.auth import login, authenticate, logout, get_user_model, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .forms import CustomUserCreationForm, CustomUserChangeForm, PasswordResetForm
 from .models import Feedback
+from django.http import JsonResponse
 
 User = get_user_model()
 
@@ -90,3 +91,34 @@ def reset_password(request, email):
     else:
         form = PasswordResetForm()
     return render(request, 'accounts/reset_password.html', {'form': form, 'email': email}) 
+
+@login_required
+def settings_view(request):
+    if request.method == 'POST':
+        user = request.user
+        old_password = request.POST.get('old_password')
+        new_password = request.POST.get('new_password')
+        confirm_password = request.POST.get('confirm_password')
+
+        # Verify old password
+        if not user.check_password(old_password):
+            return JsonResponse({'status': 'error', 'message': 'Current password is incorrect.'})
+
+        # Check if new passwords match
+        if new_password != confirm_password:
+            return JsonResponse({'status': 'error', 'message': 'New passwords do not match.'})
+
+        # Validate new password length
+        if len(new_password) < 8:
+            return JsonResponse({'status': 'error', 'message': 'New password must be at least 8 characters long.'})
+
+        # Set new password
+        user.set_password(new_password)
+        user.save()
+        
+        # Update session to prevent logout
+        update_session_auth_hash(request, user)
+        
+        return JsonResponse({'status': 'success', 'message': 'Your password has been changed successfully.'})
+
+    return render(request, 'accounts/settings.html')
